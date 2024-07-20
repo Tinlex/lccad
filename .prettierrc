@@ -1,0 +1,7 @@
+{
+  "proseWrap": "never",
+  "semi": false,
+  "singleQuote": false,
+  "trailingComma": "none",
+  "plugins": ["prettier-plugin-svelte"]
+}

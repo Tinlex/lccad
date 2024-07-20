@@ -1,0 +1,46 @@
+/* Containers */
+@layer utilities {
+  .container {
+    @apply w-full px-4 mx-auto;
+  }
+}
+
+/* Transitions */
+@layer utilities {
+  .transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+/* Header button */
+@layer utilities {
+  .header-button {
+    @apply gap-2 bg-background-secondary h-10 flex items-center justify-center text-white text-lg px-5 py-0 rounded-[3px] font-medium w-fit transition-all duration-300 ease-in-out cursor-pointer;
+  }
+
+  .header-button:hover {
+    @apply bg-background-secondary-light;
+  }
+
+  .header-button-icon {
+    @apply w-[24px] h-[24px];
+  }
+
+  .header-button-icon-small {
+    @apply w-[20px] h-[20px];
+  }
+}
+
+
+/* Slide down animation */
+@layer utilities {
+  .slide-down {
+    @apply animate-slideDown;
+  }
+
+  .slide-up {
+    opacity: 0;
+    transform: scaleY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+}

@@ -1,0 +1,32 @@
+:root {
+  /* Widths */
+  --max-container-width: 1840px;
+
+  /* Colors */
+  --color-background-secondary: #13263c;
+  --color-background-secondary-light: #23415c;
+  --color-background-primary: #130d25;
+  --color-background-primary-light: #1a1230;
+  --color-header-link: #edeaea;
+  --color-header-link-active: #3ee997;
+  --color-footer-link: #babdc1;
+  --color-game-thumbnail-border: #e5e7eb;
+  --color-game-thumbnail-description: #6b7280;
+  --color-game-thumbnail-title: #111827;
+  --color-game-thumbnail-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+
+  /* Overwrite swiper pagination stylings */
+  --swiper-pagination-color: white;
+  --swiper-pagination-bullet-size: 16px;
+  --swiper-pagination-bullet-width: 16px;
+  --swiper-pagination-bullet-height: 16px;
+  --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.5);
+  --swiper-pagination-bullet-inactive-opacity: 0.2;
+  --swiper-pagination-bullet-opacity: 1;
+  --swiper-pagination-bullet-horizontal-gap: 16px;
+  --swiper-pagination-bullet-vertical-gap: 6px;
+
+  /* Transitions */
+  --transition-light: all 0.1s ease-in-out;
+}
