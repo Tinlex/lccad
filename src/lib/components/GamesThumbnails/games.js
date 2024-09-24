@@ -16,6 +16,7 @@ export const games = [
   },
   {
     title: "FPC",
+    name: "fpc",
     thumbnail: fpc,
     link: [
       "https://g.autumninteractive.com/fpc/?token=Ah_7JarjB0tcWKR5_6ernOwIhXHBVRXbwl0doK-HbrE",
@@ -28,6 +29,7 @@ export const games = [
   },
   {
     title: "Hi Lo",
+    name: "hilo",
     thumbnail: hiLo,
     link: [
       "https://g.autumninteractive.com/hilo/?token=Ah_7JarjB0tcWKR5_6ernOwIhXHBVRXbwl0doK-HbrE",
@@ -38,19 +40,20 @@ export const games = [
       "https://g.autumninteractive.com/hilo/?token=FlC-Vx8sYr_fPCb--hR83-ZvydviAbfhzzEsVWzGmgM"
     ]
   },
-  {
-    title: "Horse Racing Virtual 03",
-    thumbnail: horseRacingVirtual03,
-    link: ["https://www.unodosph.vip/"]
-  },
-  {
-    title: "Horse Racing",
-    thumbnail: horseRacing,
-    link: ["https://www.unodosph.vip/"]
-  },
+  // {
+  //   title: "Horse Racing Virtual 03",
+  //   thumbnail: horseRacingVirtual03,
+  //   link: ["https://www.unodosph.vip/"]
+  // },
+  // {
+  //   title: "Horse Racing",
+  //   thumbnail: horseRacing,
+  //   link: ["https://www.unodosph.vip/"]
+  // },
   {
     title: "Rocket",
     thumbnail: rocket,
+    name: "rocket",
     link: [
       "https://g.autumninteractive.com/rocket/?token=Ah_7JarjB0tcWKR5_6ernOwIhXHBVRXbwl0doK-HbrE",
       "https://g.autumninteractive.com/rocket/?token=1tPjOOohW66yHp4tBF4D1gjsWD5BOREXl3YChLgau-8",
@@ -62,6 +65,7 @@ export const games = [
   },
   {
     title: "Sic Bo",
+    name: "sicbo",
     thumbnail: sicBo,
     link: [
       "https://g.autumninteractive.com/sicbo/?token=Ah_7JarjB0tcWKR5_6ernOwIhXHBVRXbwl0doK-HbrE",
@@ -73,6 +77,7 @@ export const games = [
     ]
   },
   {
+    name: "snake",
     title: "Snake Arena",
     thumbnail: snakeArena,
     link: [
@@ -86,6 +91,7 @@ export const games = [
   },
   {
     title: "Tai Xiu",
+    name: "taixiu",
     thumbnail: taiXiu,
     link: [
       "https://g.autumninteractive.com/taixiu/?token=Ah_7JarjB0tcWKR5_6ernOwIhXHBVRXbwl0doK-HbrE",

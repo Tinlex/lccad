@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { registerSchema } from "../../validation-schemas/registerSchema"
   import Input from "../Input/Input.svelte"
   import TextArea from "../TextArea/TextArea.svelte"
@@ -8,10 +8,10 @@
   import userIcon from "../../../assets/icons/user-icon.png"
   import passIcon from "../../../assets/icons/pass-icon.png"
   import PrivacyAgreementModal from "../Modals/PrivacyAgreementModal/PrivacyAgreementModal.svelte"
-  import { DatePicker as DatePickerLibrary } from "@svelte-plugins/datepicker"
-
+  import { updateAuthStoreProperty, authStore } from "../../stores/authStore"
   import { format } from "date-fns"
   import DatePicker from "../DatePicker/DatePicker.svelte"
+  import { wallet } from "../../../utils/global"
 
   export let toggleForm
 
@@ -29,9 +29,9 @@
     address: ""
   }
 
-  let errors = {}
+  let errors: any = {}
 
-  const handleDateChange = ({ startDate }) => {
+  const handleDateChange = ({ startDate }: any) => {
     const date = new Date(startDate)
     formData.dateOfBirth = format(date, "yyyy-MM-dd")
   }
@@ -46,21 +46,56 @@
     return true
   }
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!formData.policyAgreement) {
       toggleModalState("privacyAgreementModalOpen", true)
       return
     }
-    notificationMessage = `User, ${formData.username} registered.`
-    notificationStatus = "successStatus"
-    isNotificationShowed = true
-    setUserState({
-      username: formData.username,
-      password: formData.password
-    })
+
+    const showErrorNotification = () => {
+      notificationMessage = "Registration failed."
+      notificationStatus = "errorStatus"
+      isNotificationShowed = true
+    }
+
+    updateAuthStoreProperty("isAuthorizing", true)
+    try {
+      const authInfo = await wallet.member.register(
+        formData.username,
+        formData.password
+      )
+
+      if (authInfo.token) {
+        notificationMessage = `User, ${formData.username} registered.`
+        notificationStatus = "successStatus"
+        isNotificationShowed = true
+
+        localStorage.setItem("token", authInfo.token)
+        localStorage.setItem("uri", authInfo.uri)
+
+        const userInfo = await wallet.member.me(authInfo.token)
+
+        if (userInfo.username) {
+          setUserState(userInfo)
+        }
+
+        setTimeout(() => {
+          closeModal()
+        }, 1500)
+      } else {
+        showErrorNotification()
+      }
+
+      console.log(authInfo)
+    } catch (error) {
+      showErrorNotification()
+      console.log("Error while registration", error)
+    } finally {
+      updateAuthStoreProperty("isAuthorizing", false)
+    }
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault()
     if (!validate()) return
     handleRegister()
@@ -184,7 +219,9 @@
     </span>
   </div>
   <div class="buttons">
-    <button type="submit" class="primary">REGISTER</button>
+    <button disabled={$authStore.isAuthorizing} type="submit" class="primary"
+      >REGISTER</button
+    >
     <button type="button" on:click={toggleForm} class="secondary">
       LOGIN
     </button>

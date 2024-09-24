@@ -137,7 +137,7 @@
     height: 100%;
   }
   .title .logo-login {
-    width: 85px;
+    width: 130px;
     margin-right: 10px;
   }
   .form {

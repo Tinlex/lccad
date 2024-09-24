@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
   import { currentLanguage } from "../../../stores/languageStore"
   import { menuOpen, setMobileMenu } from "../../../stores/mobileMenuStore"
   import { toggleModalState } from "../../../stores/modalsStore"
+  import { logoutUser, setUserState, userState } from "../../../stores/userStore"
 
   $: menuOptions = [
     { title: "Home" },
@@ -14,16 +15,23 @@
     { title: "Classic Horse Races" },
     { title: "Cash In" },
     { title: "Cash Out" },
-    { title: `Language: ${$currentLanguage.lang}` },
-    {
-      title: "Sign up",
-      onClick: () => toggleModalState("isAuthModalOpen", true)
-    },
-    {
-      title: "Sign In",
-      onClick: () => toggleModalState("isAuthModalOpen", true)
-    }
+    { title: `Language: ${$currentLanguage.lang}` }
   ]
+
+  const onOptionClick = (e: MouseEvent) => {
+    e.stopPropagation()
+    setMobileMenu(false)
+  }
+
+  const onAuthOptionClick = (e: MouseEvent) => {
+    toggleModalState("isAuthModalOpen", true)
+    onOptionClick(e)
+  }
+
+  const onLogoutClick = (e: MouseEvent) => {
+    logoutUser()
+    onOptionClick(e)
+  }
 </script>
 
 {#if $menuOpen}
@@ -48,15 +56,38 @@
       <!-- svelte-ignore a11y-click-events-have-key-events -->
       <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
       <li
-        on:click={(e) => {
-          e.stopPropagation()
-          setMobileMenu(false)
-          option?.onClick()
-        }}
+        on:click={onOptionClick}
         class="w-full px-5 py-2.5 hover:bg-[#2d3139] transition-colors duration-200"
       >
         {option.title}
       </li>
     {/each}
+    {#if !$userState.user}
+      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <li
+        on:click={onAuthOptionClick}
+        class="w-full px-5 py-2.5 hover:bg-[#2d3139] transition-colors duration-200"
+      >
+        {"Sign in"}
+      </li>
+      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <li
+        on:click={onAuthOptionClick}
+        class="w-full px-5 py-2.5 hover:bg-[#2d3139] transition-colors duration-200"
+      >
+        {"Sign up"}
+      </li>
+    {:else}
+      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <li
+        on:click={onLogoutClick}
+        class="w-full px-5 py-2.5 hover:bg-[#2d3139] transition-colors duration-200"
+      >
+        {"Log out"}
+      </li>
+    {/if}
   </div>
 {/if}

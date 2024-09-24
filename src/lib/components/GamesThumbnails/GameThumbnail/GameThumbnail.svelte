@@ -1,25 +1,33 @@
-<script>
+<script lang="ts">
+  import { gameOrigin } from "../../../../utils/global"
   import { userState } from "../../../stores/userStore"
   export let game
+
+  const onGameClick = () => {
+    if ($userState.isTestUser) {
+      window.open(game.link[$userState.playerIndex])
+    } else {
+      window.open(`${gameOrigin}/${game.name}`, "_blank")
+    }
+  }
 </script>
 
-<a href={game.link[$userState.playerIndex]}>
-  <li
-    class="group h-full w-full shadow-md hover:shadow-lg ring-offset-2 outline-none focus:ring-cardinal-500/40 focus:ring-2 rounded-xl overflow-hidden border border-gray-300 bg-white flex flex-col hover:scale-105 transition-all duration-200 cursor-pointer"
-  >
-    <div class="relative w-full bg-neutral-400">
-      <img
-        alt={game.title}
-        srcset={game.thumbnail}
-        src={game.thumbnail}
-        decoding="async"
-        data-nimg="fill"
-        loading="lazy"
-        class="w-full h-full min-h-[250px] object-fill"
-      />
-    </div>
-  </li>
-</a>
+<li
+  on:click={onGameClick}
+  class="group h-full w-full shadow-md hover:shadow-lg ring-offset-2 outline-none focus:ring-cardinal-500/40 focus:ring-2 rounded-xl overflow-hidden border border-gray-300 bg-white flex flex-col hover:scale-105 transition-all duration-200 cursor-pointer"
+>
+  <div class="relative w-full bg-neutral-400">
+    <img
+      alt={game.title}
+      srcset={game.thumbnail}
+      src={game.thumbnail}
+      decoding="async"
+      data-nimg="fill"
+      loading="lazy"
+      class="w-full h-full min-h-[250px] object-fill"
+    />
+  </div>
+</li>
 
 <style>
   .group:hover .group-hover\:mix-blend-color-dodge {

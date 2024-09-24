@@ -1,15 +1,18 @@
-<script>
+<script lang="ts">
   import Input from "../Input/Input.svelte"
-  import {
-    validUsers,
-    setUserState,
-    setPlayerIndex
-  } from "../../stores/userStore"
   import closeIcon from "../../../assets/icons/close.svg"
   import userIcon from "../../../assets/icons/user-icon.png"
   import passIcon from "../../../assets/icons/pass-icon.png"
   import { loginSchema } from "../../validation-schemas/loginSchema"
   import { toggleModalState } from "../../stores/modalsStore"
+  import { updateAuthStoreProperty, authStore } from "../../stores/authStore"
+  import { wallet } from "../../../utils/global"
+  import {
+    setIsTestUser,
+    setPlayerIndex,
+    setUserState,
+    testUsers
+  } from "../../stores/userStore"
 
   export let toggleForm
 
@@ -17,7 +20,7 @@
   let notificationMessage = ""
   let notificationStatus = ""
   let formData = { username: "", password: "" }
-  let errors = {}
+  let errors: any = {}
 
   const validate = () => {
     const result = loginSchema.safeParse(formData)
@@ -29,37 +32,78 @@
     return true
   }
 
-  const handleLogin = () => {
-    const validUser = validUsers.find(
+  const handleLogin = async () => {
+    const showErrorNotification = () => {
+      notificationMessage = "Invalid login."
+      notificationStatus = "errorStatus"
+      isNotificationShowed = true
+    }
+
+    const showSuccessNotification = () => {
+      notificationMessage = `Successfully logged in ${formData.username}.`
+      notificationStatus = "successStatus"
+      isNotificationShowed = true
+    }
+
+    const testUser = testUsers.find(
       (user) =>
         user.username === formData.username &&
         user.password === formData.password
     )
-    if (!validUser) {
-      notificationMessage = "Invalid login."
-      notificationStatus = "errorStatus"
-      isNotificationShowed = true
+
+    // Testing user handling
+    if (testUser) {
+      const currentUserIndex = testUsers.findIndex(
+        (user) => user.username === formData.username
+      )
+      if (currentUserIndex >= 0) {
+        setPlayerIndex(currentUserIndex)
+      }
+      setIsTestUser(true)
+      setUserState({ username: formData.username })
+      showSuccessNotification()
+      setTimeout(() => {
+        closeModal()
+      }, 1000)
       return
     }
 
-    notificationMessage = `Successfully logged in ${formData.username}.`
-    notificationStatus = "successStatus"
-    isNotificationShowed = true
+    try {
+      updateAuthStoreProperty("isAuthorizing", true)
+      showSuccessNotification()
 
-    const currentUserIndex = validUsers.findIndex(
-      (user) => user.username === formData.username
-    )
-    if (currentUserIndex >= 0) {
-      setPlayerIndex(currentUserIndex)
+      const authInfo = await wallet.member.auth(
+        formData.username,
+        formData.password
+      )
+
+      if (authInfo?.token) {
+        localStorage.setItem("token", authInfo.token)
+        localStorage.setItem("uri", authInfo.uri)
+
+        const userInfo = await wallet.member.me(authInfo.token)
+
+        wallet.setBearerToken(authInfo?.token)
+
+        if (userInfo.username) {
+          setUserState(userInfo)
+        }
+
+        setTimeout(() => {
+          closeModal()
+        }, 1000)
+      } else {
+        showErrorNotification()
+      }
+    } catch (error) {
+      showErrorNotification()
+      console.log("Error while login", error)
+    } finally {
+      updateAuthStoreProperty("isAuthorizing", false)
     }
-
-    setUserState({ username: formData.username, password: formData.password })
-    setTimeout(() => {
-      closeModal()
-    }, 1000)
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault()
     if (!validate()) return
     handleLogin()
@@ -108,11 +152,12 @@
     />
   </div>
   <div class="buttons">
-    <button type="submit" class="primary">LOGIN</button>
+    <button disabled={$authStore.isAuthorizing} type="submit" class="primary"
+      >LOGIN</button
+    >
     <button
       type="button"
       on:click={() => {
-        console.log("toggleForm", toggleForm)
         toggleForm()
       }}
       class="secondary"

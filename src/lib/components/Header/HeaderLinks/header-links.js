@@ -1,22 +1,20 @@
-
 export const headerLinks = [
   {
-    title: 'HOME',
+    title: "HOME"
+  },
+  // {
+  //   title: 'COCK BOXING',
+  // },
+  // {
+  //   title: 'HORSE RACING',
+  // },
+  {
+    title: "TABLE GAMES"
   },
   {
-    title: 'COCK BOXING',
+    title: "CRASH GAME"
   },
   {
-    title: 'HORSE RACING',
-  },
-  {
-    title: 'TABLE GAMES',
-  },
-  {
-    title: 'CRASH GAME',
-  },
-  {
-    title: 'SNAKE',
+    title: "SNAKE"
   }
-];
-
+]
