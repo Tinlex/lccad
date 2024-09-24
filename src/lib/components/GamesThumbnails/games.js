@@ -12,6 +12,7 @@ export const games = [
   {
     title: "Cock Boxing",
     thumbnail: cockBoxing,
+    name: "",
     link: ["https://139.180.146.198"]
   },
   {
