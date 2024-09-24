@@ -70,8 +70,6 @@
 
     try {
       updateAuthStoreProperty("isAuthorizing", true)
-      showSuccessNotification()
-
       const authInfo = await wallet.member.auth(
         formData.username,
         formData.password
@@ -86,6 +84,7 @@
         wallet.setBearerToken(authInfo?.token)
 
         if (userInfo.username) {
+      showSuccessNotification()
           setUserState(userInfo)
         }
 
