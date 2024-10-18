@@ -75,16 +75,16 @@
         formData.password
       )
 
-      if (authInfo?.token) {
-        localStorage.setItem("token", authInfo.token)
-        localStorage.setItem("uri", authInfo.uri)
+      if (authInfo?.data.token) {
+        localStorage.setItem("token", authInfo.data?.token)
+        localStorage.setItem("uri", authInfo.data.uri)
 
-        const userInfo = await wallet.member.me(authInfo.token)
+        const userInfo = await wallet.member.me(authInfo.data.uri)
 
-        wallet.setBearerToken(authInfo?.token)
+        wallet.setBearerToken(authInfo?.data?.token)
 
         if (userInfo.username) {
-      showSuccessNotification()
+          showSuccessNotification()
           setUserState(userInfo)
         }
 

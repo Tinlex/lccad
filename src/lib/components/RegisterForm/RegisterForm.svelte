@@ -64,16 +64,17 @@
         formData.username,
         formData.password
       )
+      console.log("authInfo", authInfo)
 
-      if (authInfo.token) {
+      if (authInfo.data.token) {
         notificationMessage = `User, ${formData.username} registered.`
         notificationStatus = "successStatus"
         isNotificationShowed = true
 
-        localStorage.setItem("token", authInfo.token)
-        localStorage.setItem("uri", authInfo.uri)
+        localStorage.setItem("token", authInfo.data?.token)
+        localStorage.setItem("uri", authInfo.data?.uri)
 
-        const userInfo = await wallet.member.me(authInfo.token)
+        const userInfo = await wallet.member.me(authInfo.data?.uri)
 
         if (userInfo.username) {
           setUserState(userInfo)
@@ -88,6 +89,7 @@
 
       console.log(authInfo)
     } catch (error) {
+      console.log(error)
       showErrorNotification()
       console.log("Error while registration", error)
     } finally {

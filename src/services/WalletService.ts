@@ -48,16 +48,15 @@ export interface PurseProxy {
   busy_on: string
 }
 
+type TAuthResponse = {
+  data: { uri: string; token?: string }
+  feedback: { message: string; type: string }[]
+}
+
 interface IWalletService {
   member: {
-    register: (
-      username: string,
-      password: string
-    ) => Promise<{ uri: string; token: string }>
-    auth: (
-      username: string,
-      password: string
-    ) => Promise<{ uri: string; token: string }>
+    register: (username: string, password: string) => Promise<TAuthResponse>
+    auth: (username: string, password: string) => Promise<TAuthResponse>
     me: (check_user_token?: string) => Promise<Member>
     getByUri: (uri: string) => Promise<Member>
     getAll: () => Promise<Member[]>
@@ -134,7 +133,7 @@ class WalletService implements IWalletService {
         password: password
       })
 
-      return res.data as { uri: string; token: string }
+      return res.data as TAuthResponse
     },
 
     auth: async (username: string, password: string) => {
@@ -143,7 +142,7 @@ class WalletService implements IWalletService {
         password: password
       })
 
-      return res.data as { uri: string; token: string }
+      return res.data as TAuthResponse
     },
 
     me: async (check_user_token?: string) => {
