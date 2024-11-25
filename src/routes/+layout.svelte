@@ -7,24 +7,18 @@
   import { setUserState } from "../lib/stores/userStore"
   import { browser } from "$app/environment"
 
-  onMount(() => {
+  onMount(async () => {
     const token: string | null = localStorage.getItem("token")
+    if(!token) return;
 
-    const fetchMyUser = async () => {
-      try {
-        const userInfo = await wallet.member.me(token!)
+    try {
+      const userInfo = await wallet.member.me(token!);
 
-        if (userInfo.username) {
-          setUserState(userInfo)
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
-    if (token) {
-      fetchMyUser()
-      wallet.setBearerToken(token)
+      wallet.setBearerToken(token);
+      setUserState(userInfo);
+    } catch (error) {
+      console.error(error)
+      localStorage.removeItem("token")
     }
   })
 

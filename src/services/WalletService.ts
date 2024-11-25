@@ -1,8 +1,8 @@
-/*
- * Wallet Service API version 1.3.0
+/* 
+ * Wallet Service API version 1.4.0
  *
  * Changelog:
- *   - 1.1.0
+ *   - 1.1.0 
  *     - Added bearer token support
  *   - 1.2.0
  *     - Added service token support
@@ -18,307 +18,198 @@
  *     - Updated purse proxy update call to include new "total_bet" field
  *     - Added default values to purse proxy update call (temporarily)
  *     - Improved error handling
+ *   - 1.4.0
+ *     - Updated return types for all methods
+ *     - Added dedicated WalletError
+ *     - Exported all interfaces
+ *     - 4xx error now throw right away instead of retrying
  */
 
-export interface Member {
-  state: any
-  uri: string
-  username: string
-  purse_proxy_uri: string | null
-}
-
-export interface Wallet {
-  state: any
-  uri: string
-  currency: string
-  username: string
-  withheld: string
-  escrow: string
-  deposit: string
-}
-
-export interface PurseProxy {
-  state: string
-  uri: string
-  currency: string
-  username: string
-  withheld: string
-  escrow: string
-  deposit: string
-  busy_on: string
-}
-
-type TAuthResponse = {
-  data: { uri: string; token?: string }
-  feedback: { message: string; type: string }[]
-}
-
-interface IWalletService {
-  member: {
-    register: (username: string, password: string) => Promise<TAuthResponse>
-    auth: (username: string, password: string) => Promise<TAuthResponse>
-    me: (check_user_token?: string) => Promise<Member>
-    getByUri: (uri: string) => Promise<Member>
-    getAll: () => Promise<Member[]>
-    updateUsername: (uri: string, email: string) => Promise<Member>
+interface Member {
+    state: any;
+    uri: string;
+    username: string;
+    purse_proxy_uri: string | null;
   }
-
-  wallet: {
-    create: (
-      member_uri: string,
-      balance: number,
-      currency: string
-    ) => Promise<Wallet>
-    makeTransaction: (
-      wallet_uri: string,
-      type: "credit" | "debit",
-      amount: number,
-      currency: string
-    ) => Promise<Wallet>
-    getMemberWallets: (member_uri: string) => Promise<Wallet[]>
+  
+  interface Wallet {
+    state: any;
+    uri: string;
+    currency: string;
+    username: string;
+    withheld: string;
+    escrow: string;
+    deposit: string;
   }
-
-  purseProxy: {
-    create: (
-      product: string,
-      wallet_uri: string,
-      start_balance: number
-    ) => Promise<{
-      state: string
-      balance: string
-      currency: string
-      purse_proxy_uri: string
-    }>
-    update: (
-      proxy_uri: string,
-      action: "round_end" | "process",
-      amount?: number,
-      currency?: string,
-      total_bet?: number
-    ) => Promise<PurseProxy>
-    getByUri: (uri: string) => Promise<PurseProxy>
-    getMemberPurseProxies: (member_uri: string) => Promise<PurseProxy[]>
+  
+  interface PurseProxy {
+    state: string;
+    uri: string;
+    currency: string;
+    username: string;
+    withheld: string;
+    escrow: string;
+    deposit: string;
+    busy_on: string;
   }
-}
-
-class WalletServiceError extends Error {
-  status: number
-  detail: string
-
-  constructor(status: number, message: string) {
-    super(`Error ${status}: ${message}`)
-
-    this.status = status
-    this.detail = message
-  }
-}
-
-class WalletService implements IWalletService {
-  readonly baseUrl: string = ""
-
-  private _bearerToken: string = ""
-
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
-  }
-
-  setBearerToken(token: string) {
-    this._bearerToken = token
-  }
-
-  member = {
-    register: async (username: string, password: string) => {
-      const res = await this._request("POST", "member/register", {
-        username: username,
-        password: password
-      })
-
-      return res.data as TAuthResponse
-    },
-
-    auth: async (username: string, password: string) => {
-      const res = await this._request("POST", "member/auth", {
-        username: username,
-        password: password
-      })
-
-      return res.data as TAuthResponse
-    },
-
-    me: async (check_user_token?: string) => {
-      const res = await this._request(
-        "GET",
-        "member/me",
-        undefined,
-        check_user_token || undefined
-      )
-
-      return res.data as Member
-    },
-
-    getByUri: async (uri: string) => {
-      const res = await this._request("GET", `member/${uri}`)
-
-      return res.data as Member
-    },
-
-    getAll: async () => {
-      const res = await this._request("GET", "member/list")
-
-      return res.data as Member[]
-    },
-
-    updateUsername: async (uri: string, email: string) => {
-      const res = await this._request("PATCH", `member/${uri}`, {
-        member: {
-          email: email,
-          state: ""
-        }
-      })
-
-      return res.data as Member
+  
+  class WalletError extends Error {
+    code: number;
+  
+    constructor(code: number, message: string) {
+        super(message);
+        this.code = code;
     }
   }
-
-  wallet = {
-    create: async (member_uri: string, balance: number, currency: string) => {
-      const res = await this._request("POST", "wallet", {
-        wallet: {
-          member_uri: member_uri,
-          balance: balance.toString(),
-          default_currency: currency
-        }
-      })
-
-      return res.data as Wallet
-    },
-
-    makeTransaction: async (
-      wallet_uri: string,
-      type: "credit" | "debit",
-      amount: number,
-      currency: string
-    ) => {
-      const res = await this._request("PATCH", `wallet`, {
-        action: {
-          amount: amount.toString(),
-          currency: currency,
-          transaction: type
+  
+  class WalletService {
+    readonly baseUrl: string = "";
+    private _bearerToken: string = "";
+  
+    private _maxRetries = 10;
+  
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
+    }
+  
+    setBearerToken(token: string) {
+        this._bearerToken = token;
+    }
+  
+    member = {
+        register: (username: string, password: string) => {
+            return this._request<{ uri: string, token: string }>('POST', "member/register", {
+                username: username,
+                password: password
+            });
         },
-        wallet: {
-          uri: wallet_uri
+  
+        auth: (username: string, password: string) => {
+            return this._request<{ uri: string, token: string }>("POST", "member/auth", {
+                username: username,
+                password: password
+            });
+        },
+  
+        me: (check_user_token?: string) => {
+            return this._request<Member>('GET', "member/me", undefined, check_user_token || undefined);
+        },
+  
+        getByUri: (uri: string) => {
+            return this._request<Member>('GET', `member/${uri}`);
+        },
+  
+        getAll: () => {
+            return this._request<Member[]>('GET', "member/list");
+        },
+  
+        updateUsername: (uri: string, email: string) => {
+            return this._request<Member>('PATCH', `member/${uri}`, {
+                email: email,
+                state: ""
+            });
         }
-      })
-
-      return res.data.wallet as Wallet
-    },
-
-    getMemberWallets: async (member_uri: string) => {
-      const res = await this._request("GET", `member/${member_uri}/wallet`)
-
-      return res.wallets as Wallet[]
+    }
+  
+    wallet = {
+        create: (member_uri: string, balance: number, currency: string) => {
+            return this._request<Wallet>('POST', "wallet", {
+                member_uri: member_uri,
+                balance: balance.toString(),
+                default_currency: currency
+            });
+        },
+  
+        makeTransaction: (wallet_uri: string, type: "credit" | "debit", amount: number, currency: string) => {
+            return this._request<Wallet>('PATCH', `wallet`, {
+                action: {
+                    amount: amount.toString(),
+                    currency: currency,
+                    transaction: type
+                },
+                wallet: {
+                    uri: wallet_uri
+                }
+            });
+        },
+  
+        getMemberWallets: (member_uri: string) => {
+            return this._request<Wallet[]>('GET', `member/${member_uri}/wallets`);
+        }
+    }
+  
+    purseProxy = {
+        create: (product: string, wallet_uri: string, start_balance: number) => {
+            return this._request<{ state: string, balance: string, currency: string, purse_proxy_uri: string }>('POST', "purse_proxy", {
+                product: product,
+                start_balance: start_balance.toString(),
+                wallet_uri: wallet_uri
+            });
+        },
+  
+        update: (proxy_uri: string, action: "round_end" | "process", amount?: number, currency?: string, total_bet?: number) => {
+            return this._request<PurseProxy>('PATCH', `purse_proxy/${proxy_uri}/${action}`, {
+                amount: amount?.toString() || "0",
+                currency: currency || "USD",
+                total_bet: total_bet?.toString() || "0"
+            });
+        },
+  
+        getByUri: (uri: string) => {
+            return this._request<PurseProxy>('GET', `purse_proxy/${uri}`);
+        },
+  
+        getMemberPurseProxies: (member_uri: string) => {
+            return this._request<PurseProxy[]>('GET', `member/${member_uri}/purse_proxies`);
+        }
+    }
+  
+    private async _request<T>(method: "GET" | "POST" | "PATCH" | "DELETE", path: string, data?: any, auth?: string) {
+        const bearerToken = auth ? auth : this._bearerToken;
+        const headers: { [key: string]: string } = {};
+  
+        if(data) {
+            headers['Content-Type'] = 'application/json';
+        }
+  
+        if(bearerToken) {
+            headers['Authorization'] = `Bearer ${bearerToken}`;
+        }
+  
+        console.log(`Requesting ${method} ${path} with data: ${JSON.stringify(data)}`);
+  
+        let tries = 0;
+        while(true) {
+            try {
+                const response = await fetch(`${this.baseUrl}/${path}`, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(data)
+                });
+        
+                if(!response.ok) {
+                    throw new WalletError(response.status, response.statusText);
+                }
+        
+                return await response.json() as T;
+            } catch(error: any) {
+                if(error instanceof WalletError) {
+                    throw error;
+                }
+  
+                if(tries++ < this._maxRetries) {
+                    console.debug(`Request ${method} ${path} failed, retrying...`);
+                    console.error(error);
+  
+                    await new Promise(resolve => setTimeout(resolve, tries * 2000));
+                    continue;
+                }
+  
+                throw new WalletError(520, error?.message || "Unknown error");
+            }
+        }
     }
   }
-
-  purseProxy = {
-    create: async (
-      product: string,
-      wallet_uri: string,
-      start_balance: number
-    ) => {
-      const res = await this._request("POST", "purse_proxy", {
-        purse_proxy: {
-          product: product,
-          start_balance: start_balance.toString(),
-          wallet_uri: wallet_uri
-        }
-      })
-
-      return res.data.purse_proxy as {
-        state: string
-        balance: string
-        currency: string
-        purse_proxy_uri: string
-      }
-    },
-
-    update: async (
-      proxy_uri: string,
-      action: "round_end" | "process",
-      amount?: number,
-      currency?: string,
-      total_bet?: number
-    ) => {
-      const res = await this._request(
-        "PATCH",
-        `purse_proxy/${proxy_uri}/${action}`,
-        {
-          amount: amount?.toString() || "0",
-          currency: currency || "USD",
-          total_bet: total_bet?.toString() || "0"
-        }
-      )
-
-      return res.data.purse_proxy as PurseProxy
-    },
-
-    getByUri: async (uri: string) => {
-      const res = await this._request("GET", `purse_proxy/${uri}`)
-
-      return res.data as PurseProxy
-    },
-
-    getMemberPurseProxies: async (member_uri: string) => {
-      const res = await this._request(
-        "GET",
-        `member/${member_uri}/purse_proxies`
-      )
-
-      return res.purse_proxies as PurseProxy[]
-    }
-  }
-
-  private async _request(
-    method: "GET" | "POST" | "PATCH" | "DELETE",
-    path: string,
-    data?: any,
-    auth?: string
-  ) {
-    const bearerToken = auth ? auth : this._bearerToken
-    const headers: any = {}
-
-    if (data) {
-      headers["Content-Type"] = "application/json"
-    }
-
-    if (bearerToken) {
-      headers["Authorization"] = `Bearer ${bearerToken}`
-    }
-
-    const res = await fetch(`${this.baseUrl}/${path}`, {
-      method: method,
-      headers: headers,
-      body: JSON.stringify(data)
-    })
-
-    if (res.ok) {
-      return await res.json()
-    }
-
-    let error: any
-
-    try {
-      error = await res.json()
-    } catch (error) {
-      throw new WalletServiceError(res.status, res.statusText)
-    }
-
-    throw new WalletServiceError(
-      res.status,
-      error.feedback?.[0].message || res.statusText || "Unknown error"
-    )
-  }
-}
-
-export { WalletServiceError }
-export default WalletService
+  
+  export { WalletError };
+  export default WalletService;

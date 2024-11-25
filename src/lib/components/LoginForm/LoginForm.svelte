@@ -69,31 +69,26 @@
     }
 
     try {
-      updateAuthStoreProperty("isAuthorizing", true)
+      updateAuthStoreProperty("isAuthorizing", true);
+
       const authInfo = await wallet.member.auth(
         formData.username,
         formData.password
-      )
+      );
 
-      if (authInfo?.data.token) {
-        localStorage.setItem("token", authInfo.data?.token)
-        localStorage.setItem("uri", authInfo.data.uri)
+      wallet.setBearerToken(authInfo.token);
 
-        const userInfo = await wallet.member.me(authInfo.data.uri)
+      localStorage.setItem("token", authInfo.token)
+      localStorage.setItem("uri", authInfo.uri)
+      
+      const userInfo = await wallet.member.me();
+      
+      showSuccessNotification()
+      setUserState(userInfo)
 
-        wallet.setBearerToken(authInfo?.data?.token)
-
-        if (userInfo.username) {
-          showSuccessNotification()
-          setUserState(userInfo)
-        }
-
-        setTimeout(() => {
-          closeModal()
-        }, 1000)
-      } else {
-        showErrorNotification()
-      }
+      setTimeout(() => {
+        closeModal()
+      }, 1000)
     } catch (error) {
       showErrorNotification()
       console.log("Error while login", error)
