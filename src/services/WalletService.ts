@@ -1,5 +1,5 @@
 /* 
- * Wallet Service API version 1.4.0
+ * Wallet Service API version 1.4.1
  *
  * Changelog:
  *   - 1.1.0 
@@ -21,8 +21,9 @@
  *   - 1.4.0
  *     - Updated return types for all methods
  *     - Added dedicated WalletError
- *     - Exported all interfaces
  *     - 4xx error now throw right away instead of retrying
+ *   - 1.4.1
+ *     - Exported all interfaces
  */
 
 interface Member {
@@ -30,9 +31,9 @@ interface Member {
     uri: string;
     username: string;
     purse_proxy_uri: string | null;
-  }
-  
-  interface Wallet {
+}
+
+interface Wallet {
     state: any;
     uri: string;
     currency: string;
@@ -40,9 +41,9 @@ interface Member {
     withheld: string;
     escrow: string;
     deposit: string;
-  }
-  
-  interface PurseProxy {
+}
+
+interface PurseProxy {
     state: string;
     uri: string;
     currency: string;
@@ -51,18 +52,18 @@ interface Member {
     escrow: string;
     deposit: string;
     busy_on: string;
-  }
-  
-  class WalletError extends Error {
+}
+
+class WalletError extends Error {
     code: number;
   
     constructor(code: number, message: string) {
         super(message);
         this.code = code;
     }
-  }
-  
-  class WalletService {
+}
+
+class WalletService {
     readonly baseUrl: string = "";
     private _bearerToken: string = "";
   
@@ -209,7 +210,8 @@ interface Member {
             }
         }
     }
-  }
-  
-  export { WalletError };
-  export default WalletService;
+}
+
+export type { Member, Wallet, PurseProxy };
+export { WalletError };
+export default WalletService;
